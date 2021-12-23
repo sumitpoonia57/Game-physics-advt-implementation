@@ -20,60 +20,63 @@ def init(balls,platform):
     balls=[]
     platform=[]
     
-def getV(x1,y1,x2,y2): #get length,xchange,ychange
+def getV(x1,y1,x2,y2): 
     dx=(x2-x1)
     dy=(y2-y1)
     dist = ((dx*dx)+(dy*dy))
     dist = math.sqrt(dist)
     return (dx,dy,dist)
 
-def normalise(dx,dy,dist): #normalise dx and dy
+def normalise(dx,dy,dist): 
     if not(dist==0):
         dx2=(dx/dist)
         dy2=(dy/dist)
         return (dx2,dy2)
 
-def ballsubsitute(balls,index,i2,val):   #used to change one value easily
+def ballsubsitute(balls,index,i2,val):   
     balls[index][i2] = (balls[index][i2]+val)
     
 def deleteball(balls,index): #deletes a ball
     balls.pop(index)
+    # Collision Between two balls
       
-def checkBallcoll(balls,bi1,bi2,bounce): #collision between two balls
+def checkBallcoll(balls,bi1,bi2,bounce): 
     dx,dy,dist = getV(balls[bi1]["x"],balls[bi1]["y"],balls[bi2]["x"],balls[bi2]["y"]) 
     depth = ((balls[bi1]["size"]+balls[bi2]["size"])-dist) 
-    if depth > 0: #condn for checking if they are colliding
-        dx,dy = normalise(dx,dy,dist) #normalise dx and dy
+    if depth > 0: 
+        dx,dy = normalise(dx,dy,dist) 
         depth = depth/2
-        ballsubsitute(balls,bi1,"x",(dx*(0-depth))) #move the first ball out of the second
+        ballsubsitute(balls,bi1,"x",(dx*(0-depth))) 
         ballsubsitute(balls,bi1,"y",(dy*(0-depth))) 
-        ballsubsitute(balls,bi2,"x",(dx*depth)) #move the second ball out of the first
+        ballsubsitute(balls,bi2,"x",(dx*depth)) 
         ballsubsitute(balls,bi2,"y",(dy*depth))
         rvx = (balls[bi2]["xs"]-balls[bi1]["xs"])
         rvy = (balls[bi2]["ys"]-balls[bi1]["ys"]) 
         rv = (dx*rvx)+(dy*rvy)
-        rv = (-1-bounce)*(rv/2) #calculate bounce
-        ballsubsitute(balls,bi1,"xs",(dx*(0-rv))) #set the velocities using rv. This part will make the ball bounce
+        rv = (-1-bounce)*(rv/2) 
+        ballsubsitute(balls,bi1,"xs",(dx*(0-rv))) 
         ballsubsitute(balls,bi1,"ys",(dy*(0-rv)))
         ballsubsitute(balls,bi2,"xs",(dx*(rv)))
         ballsubsitute(balls,bi2,"ys",(dy*(rv)))
+       
+       # Ball -platform collision physics just like the ball to ball collision. This time, only the ball moves and not the platform.
     
-def colBall(balls,index,pos,pRad,bounce): #the ball-platform collision physics
-    #just like the ball to ball collision. This time, only the ball moves and not the platform.
+def colBall(balls,index,pos,pRad,bounce):    
     dx,dy,dist=getV(pos[0],pos[1],balls[index]["x"],balls[index]["y"])
-    depth = ((pRad+balls[index]["size"])-dist) #calculate how much the ball has got into the platform
+    depth = ((pRad+balls[index]["size"])-dist) 
     if depth > 0: #if they collide
-        dx,dy=normalise(dx,dy,dist) #normalise
-        if dy < 0: #if it has got too much into the platform, it will mess up the bounce effect
-            depth = (depth+0.1) #push it out of the platform a bit.
-        ballsubsitute(balls,index,"x",(dx*depth)) #get the ball out of the platform
+        dx,dy=normalise(dx,dy,dist) 
+        if dy < 0: 
+            depth = (depth+0.1) 
+        ballsubsitute(balls,index,"x",(dx*depth)) 
         ballsubsitute(balls,index,"y",(dy*depth))
-        velop = ((dx*balls[index]["xs"])+(dy*balls[index]["ys"])) #set the velocity based on the ball velocity and how much it has got into the platform
-        velop = ((0-bounce)*velop) #add the bounce effect
-        ballsubsitute(balls,index,"xs",(dx*velop)) #change the ball velovity using it's bounce(the velop variable)
+        velop = ((dx*balls[index]["xs"])+(dy*balls[index]["ys"])) 
+        velop = ((0-bounce)*velop) 
+        ballsubsitute(balls,index,"xs",(dx*velop)) 
         ballsubsitute(balls,index,"ys",(dy*velop))
+        # Check if ball colliding with platform or not
 
-def checkcol(balls,platform,bi,pi,pRad,bounce): #checks if a ball is colliding with a platform
+def checkcol(balls,platform,bi,pi,pRad,bounce): 
     #This function projects the vector(platform's x1,y1 to the ball position)into the platform.The colBall function
     #checks if the ball is colliding with the projected point.
     dx,dy,dist=getV(platform[pi]["x1"],platform[pi]["y1"],balls[bi]["x"],balls[bi]["y"])
@@ -93,11 +96,11 @@ def update(balls,platform,pRad,bounce,gravity,friction,bbounce,w,h): #the main f
             ballsubsitute(balls,bi,"xs",0)
             ballsubsitute(balls,bi,"ys",gravity)
             balls[bi]["xs"] = balls[bi]["xs"]*friction
-            for ob in range(len(balls)): #check ball to ball collision
-                if not(bi == ob): #avoid checking collission with the selected ball itself
+            for ob in range(len(balls)): 
+                if not(bi == ob): 
                     checkBallcoll(balls,bi,ob,bbounce)        
             pi=0
-            for pi in range(len(platform)): #check collision with platform
+            for pi in range(len(platform)): 
                 checkcol(balls,platform,bi,pi,pRad,bounce)
             if balls[bi]["x"]>w:
                 deleteball(balls,bi)
@@ -112,9 +115,10 @@ def angle(angle,rad,x,y):
 def drawLine(x1,y1,x2,y2,size,col):
     pygame.draw.line(win, (0,0,0), [x1,y1], [x2,y2], size+1)
     pygame.draw.circle(win, col, (x1, y1), size, size)   
-    pygame.draw.circle(win, col, (x2, y2), size, size)   
+    pygame.draw.circle(win, col, (x2, y2), size, size)
+    # Drawing function
     
-def render(balls,platform,win,pCol,pRad): # drawing function
+def render(balls,platform,win,pCol,pRad): 
     #drawing
     pi=0
     for pi in range(len(platform)): #draws the platforms
@@ -124,7 +128,8 @@ def render(balls,platform,win,pCol,pRad): # drawing function
         pygame.draw.circle(win, pCol, (int(platform[pi]["x2"]), int(platform[pi]["y2"])), pRad, pRad-1)   
         
     pi=0
-    for pi in range(len(balls)): #draw the balls
+    # Draws the balls
+    for pi in range(len(balls)): 
         pygame.draw.circle(win, (balls[pi]["r"],balls[pi]["g"],balls[pi]["b"]), (int(balls[pi]["x"]), int(balls[pi]["y"])), balls[pi]["size"], balls[pi]["size"])   
         pygame.draw.circle(win, (0,0,0), (int(balls[pi]["x"]), int(balls[pi]["y"])), balls[pi]["size"], 1)   
 
@@ -214,7 +219,7 @@ def mainLoop():
         for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
                 done = False
-            if event.type == pygame.KEYDOWN: #function for adding balls
+            if event.type == pygame.KEYDOWN:        #function for adding balls
                 if event.key == pygame.K_LCTRL:
                     x,y = pygame.mouse.get_pos()
                     if addp == "n": 
@@ -227,7 +232,7 @@ def mainLoop():
                             if not(x1 == x) or not(y1 == y):
                                 addp = "n"
                                 addPlatform(platform,x1,y1,x,y)                              
-                elif event.key == pygame.K_SPACE: #delete function
+                elif event.key == pygame.K_SPACE:       #delete function
                     x,y = pygame.mouse.get_pos()
                     looping = True
                     i = 0
